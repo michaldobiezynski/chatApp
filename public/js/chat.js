@@ -10,7 +10,13 @@ chatForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
   const messageData = event.target.elements.message.value;
-  socket.emit("sendMessage", messageData);
+  socket.emit("sendMessage", messageData, (error) => {
+    if (error) {
+      return console.log(error);
+    }
+
+    console.log("Message delivered!");
+  });
   chatForm.reset();
 });
 
@@ -20,10 +26,16 @@ document.querySelector("#send-location").addEventListener("click", () => {
   } else {
     navigator.geolocation.getCurrentPosition((position) => {
       console.log(position);
-      socket.emit("sendLocation", {
-        long: position.coords.longitude,
-        lat: position.coords.latitude,
-      });
+      socket.emit(
+        "sendLocation",
+        {
+          long: position.coords.longitude,
+          lat: position.coords.latitude,
+        },
+        (message) => {
+          console.log(message);
+        }
+      );
     });
   }
 });

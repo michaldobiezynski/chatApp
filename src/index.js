@@ -33,7 +33,7 @@ io.on("connection", (socket) => {
   socket.on("sendLocation", (message, callback) => {
     console.log(message);
     io.emit(
-      "message",
+      "locationMessage",
       `https://google.com/maps?q=${message.lat},${message.long}`
     );
     callback("Location shared!");

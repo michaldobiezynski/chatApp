@@ -35,33 +35,43 @@ io.on("connection", (socket) => {
 
     socket.join(user.room);
 
-    socket.emit("message", generateMessage("Welcome!"));
+    socket.emit("message", generateMessage("System", "Welcome!"));
     socket.broadcast
       .to(user.room)
-      .emit("message", generateMessage(`${user.username} has joined!`));
+      .emit(
+        "message",
+        generateMessage("System", `${user.username} has joined!`)
+      );
     callback();
   });
 
   socket.on("sendMessage", (message, callback) => {
-    const filter = new Filter();
+    const user = getUser(socket.id);
 
-    if (filter.isProfane(message)) {
-      return callback("Profanity is not allowed!");
+    if (user) {
+      const filter = new Filter();
+
+      if (filter.isProfane(message)) {
+        return callback("Profanity is not allowed!");
+      }
+
+      io.to(user.room).emit("message", generateMessage(user.username, message));
+      callback();
     }
-
-    io.to("myRoom").emit("message", generateMessage(message));
-    callback();
   });
 
   socket.on("sendLocation", (message, callback) => {
-    console.log(message);
-    io.emit(
-      "locationMessage",
-      generateLocationMessage(
-        `https://google.com/maps?q=${message.lat},${message.long}`
-      )
-    );
-    callback("Location shared!");
+    const user = getUser(socket.id);
+    if (user) {
+      io.to(user.room).emit(
+        "locationMessage",
+        generateLocationMessage(
+          user.username,
+          `https://google.com/maps?q=${message.lat},${message.long}`
+        )
+      );
+      callback("Location shared!");
+    }
   });
 
   socket.on("disconnect", () => {
